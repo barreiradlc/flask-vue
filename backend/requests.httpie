@@ -1,21 +1,24 @@
 
 
 // Health check
-https http://127.0.0.1:5000/
+https http://localhost:5000/
 
 
-// Add item
-https http://localhost:5000/api/items name='This is item 3'
+// Add todo
+https http://localhost:5000/api/todos description='This is todo 1'
 
  
-// List items
-https http://localhost:5000/api/items
+// List todos
+https http://localhost:5000/api/todos
 
-// Find item
-https http://localhost:5000/api/items/1
+// Find todo
+https http://localhost:5000/api/todos/1
 
-// Put item
-https PUT http://localhost:5000/api/items/1 name='This is a new item 1'
+// Put todo
+https PUT http://localhost:5000/api/todos/1 description='This is a new todo 1'
 
-// Delete item
-https DELETE http://localhost:5000/api/items/2
+// Put status
+https PUT http://localhost:5000/api/todos/checked/1 completed:=true
+
+// Delete todo
+https DELETE http://localhost:5000/api/todos/2

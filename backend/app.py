@@ -14,71 +14,96 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # Database model
-class Item(db.Model):
-    __tablename__ = 'items'
+class Todo(db.Model):
+    __tablename__ = 'todos'
     
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.String(255), nullable=False)
+    completed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
     
     def to_dict(self):
-        return {'id': self.id, 'name': self.name}
+        return {
+            'id': self.id, 
+            'description': self.description,
+            'completed': self.completed,
+            'createdAt': self.created_at,
+        }
 
 # Create tables
 with app.app_context():
+    # db.drop_all()
     db.create_all()
 
 @app.route('/')
 def hello_world():
     return jsonify(message="Hello, World!")
 
-# GET request: Retrieve all items
-@app.route('/api/items', methods=['GET'])
-def get_items():
-    items = Item.query.all()
-    return jsonify([item.to_dict() for item in items])
+# GET request: Retrieve all todos
+@app.route('/api/todos', methods=['GET'])
+def get_todos():
+    todos = Todo.query.all()
+    return jsonify([todo.to_dict() for todo in todos])
 
 # GET request: Retrieve a specific item by ID
-@app.route('/api/items/<int:item_id>', methods=['GET'])
-def get_item(item_id):
-    item = Item.query.get(item_id)
-    if item is None:
-        return jsonify({"error": "Item not found"}), 404
-    return jsonify(item.to_dict())
+@app.route('/api/todos/<int:todo_id>', methods=['GET'])
+def get_todo(todo_id):
+    todo = Todo.query.get(todo_id)
+    if todo is None:
+        return jsonify({"error": "Todo not found"}), 404
+    return jsonify(todo.to_dict())
 
 # POST request: Create a new item
-@app.route('/api/items', methods=['POST'])
-def create_item():
-    name = request.json.get('name')
-    if not name:
-        return jsonify({"error": "Name is required"}), 400
+@app.route('/api/todos', methods=['POST'])
+def create_todo():
+    description = request.json.get('description')
+    if not description:
+        return jsonify({"error": "description is required"}), 400
     
-    new_item = Item(name=name)
-    db.session.add(new_item)
+    new_todo = Todo(description=description)
+    db.session.add(new_todo)
     db.session.commit()
-    return jsonify(new_item.to_dict()), 201
+    return jsonify(new_todo.to_dict()), 201
 
-# PUT request: Update an existing item
-@app.route('/api/items/<int:item_id>', methods=['PUT'])
-def update_item(item_id):
-    item = Item.query.get(item_id)
-    if item is None:
-        return jsonify({"error": "Item not found"}), 404
+# PUT request: Update an existing todo description
+@app.route('/api/todos/<int:todo_id>', methods=['PUT'])
+def update_todo(todo_id):
+    todo = Todo.query.get(todo_id)
+    if todo is None:
+        return jsonify({"error": "Todo not found"}), 404
     
-    name = request.json.get('name')
-    if name:
-        item.name = name
+    description = request.json.get('description')
+    if description:
+        todo.description = description
     
     db.session.commit()
-    return jsonify(item.to_dict())
+    return jsonify(todo.to_dict())
 
-# DELETE request: Delete an item
-@app.route('/api/items/<int:item_id>', methods=['DELETE'])
-def delete_item(item_id):
-    item = Item.query.get(item_id)
-    if item is None:
-        return jsonify({"error": "Item not found"}), 404
+
+# PUT request: Update todo completed status
+@app.route('/api/todos/check/<int:todo_id>', methods=['PUT'])
+def update_todo_status(todo_id):
+    todo = Todo.query.get(todo_id)
+    if todo is None:
+        return jsonify({"error": "Todo not found"}), 404
     
-    db.session.delete(item)
+    completed = request.args.get('completed')
+    if completed is not None:
+        todo.completed = completed
+    else:
+        todo.completed = not todo.completed
+    
+    db.session.commit()
+    return jsonify(todo.to_dict())
+
+# DELETE request: Delete an todo
+@app.route('/api/todos/<int:todo_id>', methods=['DELETE'])
+def delete_todo(todo_id):
+    todo = Todo.query.get(todo_id)
+    if todo is None:
+        return jsonify({"error": "Todo not found"}), 404
+    
+    db.session.delete(todo)
     db.session.commit()
     return '', 204
 
