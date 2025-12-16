@@ -1,5 +1,5 @@
 build:
-	python3 -m venv venv && pip install flask
+	python3 -m venv venv && pip install --no-cache-dir -r requirements.txt
 
 
 activate:

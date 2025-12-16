@@ -1,6 +1,25 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: flask_vue
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ./backend
@@ -11,9 +30,13 @@ services:
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/flask_vue
     volumes:
       - ./backend:/app
     command: python3 app.py
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - app-network
 
@@ -34,6 +57,9 @@ services:
     command: npm run dev
     networks:
       - app-network
+
+volumes:
+  postgres_data:
 
 networks:
   app-network:
