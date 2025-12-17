@@ -66,29 +66,30 @@ const availableFilters: FilterOption[] = [
 const todos = ref<Todo[]>([])
 const currentFilter = ref<FilterType>('all')
 
-// Load todos from localStorage on mount
-onMounted(async () => {
-  const url = `${import.meta.env.VITE_API_URL}/api/todos`
-  
-  console.log(url)
-  console.log(apiUrl)
-  console.log(import.meta.env)
-  const response = await axios.get(url)
+const loadTodos = async () => {
+  try {
+    const url = `${apiUrl}/api/todos`
+    const { data } = await axios.get(url)
 
-  console.log(response)
-
-  const savedTodos = localStorage.getItem('vue-todos')
-  if (savedTodos) {
-    todos.value = JSON.parse(savedTodos).map((todo: any) => ({
+    todos.value = data.map((todo: Todo) => ({
       ...todo,
       createdAt: new Date(todo.createdAt)
     }))
+  } catch ( error) {
+    console.error("Error loading todos:", error)
   }
+}
+
+// Load todos on mount
+onMounted(async () => {
+  loadTodos()
 })
 
 // Save todos to localStorage whenever they change
-const saveTodos = () => {
-  localStorage.setItem('vue-todos', JSON.stringify(todos.value))
+const saveTodos = async (todo?: Todo) => {
+  localStorage.setItem('vue-todos', JSON.stringify(todo ? todos.value.unshift(todo) : todos.value))
+  
+  await loadTodos()
 }
 
 // Computed properties
@@ -112,38 +113,45 @@ const filteredTodos = computed(() => {
 })
 
 // Todo operations
-const addTodo = (newTodo: NewTodo) => {
-  if (newTodo.description.trim()) {
-    const todo: Todo = {
-      id: Date.now(),
-      description: newTodo.description.trim(),
-      completed: false,
-      createdAt: new Date()
-    }
-    todos.value.unshift(todo)
+const addTodo = async (newTodo: NewTodo) => {
+  try {
+    
+    const url = `${apiUrl}/api/todos`
+    const { data } = await axios.post(url, 
+      { description: newTodo.description.trim() }
+    )
+  
     saveTodos()
+  } catch ( error) {
+    console.error("Error adding todo:", error)
   }
 }
 
-const toggleTodo = (id: number) => {
-  const todo = todos.value.find(todo => todo.id === id)
-  if (todo) {
-    todo.completed = !todo.completed
-    saveTodos()
-  }
-}
-
-const deleteTodo = (id: number) => {
+const deleteTodo = async (id: number) => {
   todos.value = todos.value.filter(todo => todo.id !== id)
+  const url = `${apiUrl}/api/todos/${id}`
+  await axios.delete(url)
+
   saveTodos()
 }
 
-const editTodo = (payload: { id: number; text: string }) => {
-  const todo = todos.value.find(todo => todo.id === payload.id)
-  if (todo && payload.text.trim()) {
-    todo.description = payload.text.trim()
+const toggleTodo = async (payload: { id: number; completed: boolean }) => {
+  console.log("Toggling todo:", payload);
+  try {
+    const url = `${apiUrl}/api/todos/check/${payload.id}`
+    await axios.put(url, { completed: !payload.completed })
+    
     saveTodos()
+  } catch (error) {
+    console.error("Error toggling todo:", error)
   }
+}
+
+const editTodo = async (payload: { id: number; text: string }) => {
+  const url = `${apiUrl}/api/todos/${payload.id}`
+  await axios.put(url, { description: payload.text.trim() })
+
+  saveTodos()
 }
 </script>
 
@@ -152,6 +160,13 @@ const editTodo = (payload: { id: number; text: string }) => {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
+  font-family: "Nunito Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: <weight>;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100,
+    "YTLC" 500;
 }
 
 .container {

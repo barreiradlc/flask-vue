@@ -1,20 +1,20 @@
 <template>
   <div class="todo-list">
     <div v-for="todo in todos" :key="todo.id" class="todo-item">
-      <div class="todo-content">
+      <div class="todo-content fade-in-element">
         <input
           type="checkbox"
           :checked="todo.completed"
-          @change="toggleTodo(todo.id)"
+          @change="toggleTodo(todo.id, todo.completed)"
           class="todo-checkbox"
         />
         
         <div 
           v-if="!todo.isEditing"
-          :class="['todo-text', { completed: todo.completed }]"
+          :class="['todo-description', { completed: todo.completed }]"
           @dblclick="startEditing(todo)"
         >
-          {{ todo.text }}
+          {{ todo.description }}
         </div>
         
         <input
@@ -72,8 +72,8 @@ const formatDate = (date: Date) => {
   })
 }
 
-const toggleTodo = (id: number) => {
-  emit('toggle-todo', id)
+const toggleTodo = (id: number, completed: boolean) => {
+  emit('toggle-todo', { id, completed })
 }
 
 const deleteTodo = (id: number) => {
@@ -83,7 +83,7 @@ const deleteTodo = (id: number) => {
 const startEditing = (todo: Todo) => {
   const editingTodo = todo as EditingTodo
   editingTodo.isEditing = true
-  editingTodo.editText = todo.text
+  editingTodo.editText = todo.description
 }
 
 const saveEdit = (todo: EditingTodo) => {
@@ -135,6 +135,20 @@ const vFocus = {
   gap: 1rem;
 }
 
+.fade-in-element {
+    animation: fadeIn 2s forwards; /* 2s duration, retains final state */
+}
+
+@keyframes fadeIn {
+    from {
+        background-color: white;
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
 .todo-checkbox {
   width: 1.25rem;
   height: 1.25rem;
@@ -142,14 +156,14 @@ const vFocus = {
   accent-color: #667eea;
 }
 
-.todo-text {
+.todo-description {
   flex: 1;
   font-size: 1.1rem;
   cursor: pointer;
   transition: color 0.3s ease;
 }
 
-.todo-text.completed {
+.todo-description.completed {
   text-decoration: line-through;
   color: #94a3b8;
 }
@@ -169,6 +183,7 @@ const vFocus = {
   gap: 0.25rem;
   font-size: 0.75rem;
   color: #64748b;
+  margin-right: 1rem;
 }
 
 .todo-status {

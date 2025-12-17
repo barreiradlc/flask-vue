@@ -28,7 +28,7 @@ const newTodoText = ref('')
 
 const handleSubmit = () => {
   if (newTodoText.value.trim()) {
-    emit('add-todo', { text: newTodoText.value })
+    emit('add-todo', { description: newTodoText.value })
     newTodoText.value = ''
   }
 }
