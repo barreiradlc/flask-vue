@@ -40,16 +40,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import axios from 'axios'
+import TodoFilter from './components/TodoFilter.vue'
 import TodoInput from './components/TodoInput.vue'
 import TodoList from './components/TodoList.vue'
-import TodoFilter from './components/TodoFilter.vue'
-import type { Todo, NewTodo } from './types/todo'
+import type { NewTodo, Todo } from './types/todo'
 
 // Available filter options
 type FilterType = 'all' | 'active' | 'completed'
 
-const availableFilters = [
+type FilterOption = {
+  value: FilterType
+  label: string
+}
+
+const availableFilters: FilterOption[] = [
   { value: 'all', label: 'All' },
   { value: 'active', label: 'Active' },
   { value: 'completed', label: 'Completed' }
@@ -60,6 +66,8 @@ const currentFilter = ref<FilterType>('all')
 
 // Load todos from localStorage on mount
 onMounted(() => {
+  const response = axios.get(`${import.meta.env.VITE_API_URL}/api/todos`)
+
   const savedTodos = localStorage.getItem('vue-todos')
   if (savedTodos) {
     todos.value = JSON.parse(savedTodos).map((todo: any) => ({
@@ -96,10 +104,10 @@ const filteredTodos = computed(() => {
 
 // Todo operations
 const addTodo = (newTodo: NewTodo) => {
-  if (newTodo.text.trim()) {
+  if (newTodo.description.trim()) {
     const todo: Todo = {
       id: Date.now(),
-      text: newTodo.text.trim(),
+      description: newTodo.description.trim(),
       completed: false,
       createdAt: new Date()
     }
@@ -124,7 +132,7 @@ const deleteTodo = (id: number) => {
 const editTodo = (payload: { id: number; text: string }) => {
   const todo = todos.value.find(todo => todo.id === payload.id)
   if (todo && payload.text.trim()) {
-    todo.text = payload.text.trim()
+    todo.description = payload.text.trim()
     saveTodos()
   }
 }

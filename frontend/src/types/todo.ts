@@ -6,5 +6,5 @@ export interface Todo {
 }
 
 export interface NewTodo {
-  text: string;
+  description: string;
 }
