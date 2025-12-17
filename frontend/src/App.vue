@@ -47,6 +47,8 @@ import TodoInput from './components/TodoInput.vue'
 import TodoList from './components/TodoList.vue'
 import type { NewTodo, Todo } from './types/todo'
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 // Available filter options
 type FilterType = 'all' | 'active' | 'completed'
 
@@ -69,6 +71,8 @@ onMounted(async () => {
   const url = `${import.meta.env.VITE_API_URL}/api/todos`
   
   console.log(url)
+  console.log(apiUrl)
+  console.log(import.meta.env)
   const response = await axios.get(url)
 
   console.log(response)
