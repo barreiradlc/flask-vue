@@ -40,8 +40,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
 import axios from 'axios'
+import { computed, onMounted, ref } from 'vue'
 import TodoFilter from './components/TodoFilter.vue'
 import TodoInput from './components/TodoInput.vue'
 import TodoList from './components/TodoList.vue'
@@ -65,8 +65,13 @@ const todos = ref<Todo[]>([])
 const currentFilter = ref<FilterType>('all')
 
 // Load todos from localStorage on mount
-onMounted(() => {
-  const response = axios.get(`${import.meta.env.VITE_API_URL}/api/todos`)
+onMounted(async () => {
+  const url = `${import.meta.env.VITE_API_URL}/api/todos`
+  
+  console.log(url)
+  const response = await axios.get(url)
+
+  console.log(response)
 
   const savedTodos = localStorage.getItem('vue-todos')
   if (savedTodos) {
