@@ -1,0 +1,30 @@
+
+
+### Health check
+GET http://localhost:5000/
+
+### Mailer
+GET http://localhost:5000/api/mail
+
+### Add todo
+POST http://localhost:5000/api/todos 
+Content-Type: application/json
+
+{
+  "description": "This is todo 23"
+}
+ 
+### List todos
+GET http://localhost:5000/api/todos
+
+### Find todo
+GET http://localhost:5000/api/todos/1
+
+### Put todo
+PUT http://localhost:5000/api/todos/1 description='This is a new todo 1'
+
+### Put status
+PUT http://localhost:5000/api/todos/check/8 completed:=true
+
+### Delete todo
+DELETE http://localhost:5000/api/todos/2

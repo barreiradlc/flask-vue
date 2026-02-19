@@ -1,7 +1,9 @@
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from mail_service import send_email
 import os
+import time
 
 app = Flask(__name__)
 
@@ -10,11 +12,24 @@ CORS(app)
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
     'DATABASE_URL',
-    'postgresql://postgres:postgres@localhost:5432/flask_vue'
+    'postgresql://postgres:postgres@postgres:5432/flask_vue'
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+
+def wait_for_db(max_retries=10, delay_seconds=2):
+    for attempt in range(max_retries):
+        try:
+            db.engine.connect().close()
+            return
+        except Exception:
+            if attempt == max_retries - 1:
+                raise
+            time.sleep(delay_seconds)
+
+# Initialize mail service
+# init_mail(app)
 
 # Database model
 class Todo(db.Model):
@@ -36,11 +51,23 @@ class Todo(db.Model):
 # Create tables
 with app.app_context():
     # db.drop_all()
+    wait_for_db()
     db.create_all()
 
 @app.route('/')
 def hello_world():
     return jsonify(message="Hello, World!")
+
+# Mailer endpoint
+@app.route('/api/mail')
+def send_mail():
+    print("Received request to send email")
+    result = send_email()
+    
+    if result.get("success"):
+        return jsonify({"message": result.get("message")}), 200
+    else:
+        return jsonify({"error": result.get("message")}), 500
 
 # GET request: Retrieve all todos
 @app.route('/api/todos', methods=['GET'])
